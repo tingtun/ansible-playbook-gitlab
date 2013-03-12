@@ -27,23 +27,27 @@ You need to pass the appropriate flags for SSH and sudo to ansible-playbook,
 and which are appropriate depends on your local and remote configuration. The
 playbooks installs GitLab on all hosts in group gitlab.
 
-Execute the following.
+Run the following:
 
     ansible-playbook 0.yml
 
-After 0.yml has completed, then log in to the box and do:
+After 0.yml has completed, then log in to the server and do:
 
     sudo -u gitlab -H ssh git@localhost
+    sudo -u gitlab -H ssh git@host-of-server
 
 Edit vars.yml in this playbook repository and change the database password. Now,
 run:
 
     ansible-playbook 1.yml
 
-Log into the box as gitlab, and change both production username to github and
+Log into the server as gitlab, and change both production username to github and
 password to the password you set in vars.yml:
 
     vi /home/gitlab/gitlab/config/database.yml
+
+Also edit set the gitlab host and gitolite ssh_host to the hostname of the
+machine.
 
 **You only want to run the following playbook once, as it initializes the database.**
 
@@ -54,9 +58,10 @@ default symlink. This should not be a problem when installed on a new server.
 
     ansible-playbook 3.yml
 
-Log in to the box and Add this to the file:
+Log in to the server and adjust the Nginx configuration:
 
     vi /etc/nginx/sites-available/gitlab
+
     listen 80;
     server_name localhost;
 
