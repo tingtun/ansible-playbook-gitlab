@@ -1,4 +1,4 @@
-# gitlab-ansible
+# ansible-playbook-gitlab
 
 Playbook for installing GitLab 4.2 on Debian unstable.
 
