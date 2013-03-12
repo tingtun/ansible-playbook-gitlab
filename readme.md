@@ -11,9 +11,9 @@ You need to have sudo installed on the remote host and Ansible on the client. Ru
 
 The apt module is used, and for that reason the playbooks only work on Debian-based distributions. The playbooks are currently only tested on Debian unstable. Patches are welcome for extending support for other platforms. Also, please report if the playbooks should happen to work on other configurations.
 
-## Installation
-You need to pass the appropriate flags for SSH and sudo to `ansible-playbook`, and which are appropriate depends on your local and remote configuration. The playbooks installs GitLab on all hosts in group gitlab.
+You need to pass the appropriate flags for SSH and sudo to `ansible-playbook`, and which are appropriate depends on your local and remote configuration. The playbooks installs GitLab on all hosts in group gitlab. So you should add one or many hosts belonging to the group gitlab to /etc/ansible/hosts.
 
+## Installation
 Run the following:
 
     ansible-playbook 0.yml
