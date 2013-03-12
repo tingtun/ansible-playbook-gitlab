@@ -2,7 +2,7 @@
 
 Playbook for installing GitLab 4.2 on Debian unstable.
 
-GitLab is a truly awesome platform for doing development within a business, but setting it up manually is tiring and error-prone as it requires many steps that needs to be executed. This Ansible playbook aims to solve this problem by significally reducing the amount of steps.
+GitLab is a truly awesome platform for doing development within a business, but setting it up manually is tiring and error-prone as it requires many steps that needs to be executed. This Ansible playbook aims to solve this problem by significantly reducing the amount of steps.
 
 To make it as easy as possible to maintain this playbook, it is structured as closely as possible to the GitLab documentation. At some places in the documentation, some interactivity is required, and for that reason the playbook is split into parts.
 
