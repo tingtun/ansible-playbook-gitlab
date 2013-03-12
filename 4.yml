@@ -1,0 +1,8 @@
+---
+# 7. Nginx (continued)
+
+- hosts: gitlab
+  sudo: yes
+  tasks:
+    - name: restart Nginx
+      command: /etc/init.d/nginx restart
