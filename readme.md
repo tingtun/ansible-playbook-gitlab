@@ -7,11 +7,11 @@ GitLab is a truly awesome platform for doing development within a business, but 
 To make it as easy as possible to maintain this playbook, it is structured as closely as possible to the GitLab documentation. At some places in the documentation, some interactivity is required, and for that reason the playbook is split into parts.
 
 ## Prerequisites
-You need to have sudo installed on the remote host and Ansible on the client. Run `apt-get update` and `apt-get upgrade` before proceeding.
-
-The apt module is used, and for that reason the playbooks only work on Debian-based distributions. The playbooks are currently only tested on Debian unstable. Patches are welcome for extending support for other platforms. Also, please report if the playbooks should happen to work on other configurations.
+You need to have sudo installed on the server and Ansible on the client. Also, run `apt-get update` and `apt-get upgrade` on the server before proceeding.
 
 You need to pass the appropriate flags for SSH and sudo to `ansible-playbook`, and which are appropriate depends on your local and remote configuration. The playbooks installs GitLab on all hosts in group gitlab. So you should add one or many hosts belonging to the group gitlab to /etc/ansible/hosts.
+
+The apt module is used, and for that reason the playbooks only work on Debian-based distributions. The playbooks are currently only tested on Debian unstable. Patches are welcome for extending support for other platforms. Also, please report if the playbooks should happen to work on other configurations.
 
 ## Installation
 Run the following:
