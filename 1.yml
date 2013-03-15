@@ -49,8 +49,8 @@
   sudo: yes
   sudo_user: gitlab
   tasks:
-    - name: ensure directory for satelittes exists
-      file: state=directory path=/home/gitlab/gitlab-satelittes
+    - name: ensure directory for satellites exists
+      file: state=directory path=/home/gitlab/gitlab-satellites
     - name: ensure copy of unicorn config exists 
       command: cp /home/gitlab/gitlab/config/unicorn.rb.example /home/gitlab/gitlab/config/unicorn.rb creates=/home/gitlab/gitlab/config/unicorn.rb
     - name: ensure copy of database config exists
