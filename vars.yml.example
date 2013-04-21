@@ -1,0 +1,3 @@
+---
+domain_name: gitlab.dev # This is an FQDN, for example: google.com, foo.com
+database_password: secrete
