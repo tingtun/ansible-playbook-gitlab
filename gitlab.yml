@@ -1,0 +1,198 @@
+---
+- hosts: gitlab
+  sudo: yes
+  tasks:
+    - name: add domain to hosts file for fast resolution
+      action: template src=templates/hosts.j2 dest=/etc/hosts
+    - name: ensure apt cache is up to date
+      action: apt update_cache=yes
+    - name: ensure app apt dependencies are installed
+      action: apt pkg=$item
+      with_items:
+        - build-essential
+        - zlib1g-dev
+        - libyaml-dev
+        - libssl-dev
+        - libgdbm-dev
+        - libreadline-dev
+        - libncurses5-dev
+        - libffi-dev
+        - curl
+        - git-core
+        - openssh-server
+        - redis-server
+        - postfix
+        - checkinstall
+        - libxml2-dev
+        - libxslt1-dev
+        - libcurl4-openssl-dev
+        - libicu-dev
+        - mysql-server
+        - mysql-client
+        - libmysqlclient-dev
+        - python-mysqldb # Required for ansible mysql module to work, see: http://ansible.cc/docs/modules.html#mysql-user
+
+- hosts: gitlab
+  sudo: yes
+  tasks:
+    - name: ensure /usr/local/bin/python2 links to /usr/bin/python
+      file: state=link src=/usr/bin/python path=/usr/local/bin/python2
+
+# Compile Ruby!
+
+- hosts: gitlab
+  sudo: no
+  vars:
+    url: http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p392.tar.gz
+    path: /tmp/ruby/ruby-1.9.3-p392
+  tasks:
+    - name: ensure directory /tmp/ruby is present
+      file: state=directory path=/tmp/ruby
+    - name: ensure ruby is downloaded
+      get_url: url=$url dest=/tmp/ruby
+    - name: ensure ruby is extracted
+      command: tar -xf ruby-1.9.3-p392.tar.gz chdir=/tmp/ruby creates=$path
+    - name: ensure ruby is configured
+      command: ./configure chdir=$path creates=$path/Makefile
+    - name: ensure ruby is compiled
+      command: make chdir=$path creates=$path/ruby
+
+- hosts: gitlab
+  sudo: yes
+  vars:
+    path: /tmp/ruby/ruby-1.9.3-p392
+  tasks:
+    - name: ensure ruby is installed
+      command: make install chdir=$path creates=/usr/local/bin/ruby
+    - name: ensure bundler is installed
+      command: gem install bundler creates=/usr/local/lib/ruby/gems/1.9.1/gems/bundler-1.3.0
+
+# System Users
+
+- hosts: gitlab
+  sudo: yes
+  tasks:
+    - name: ensure user git is present
+      user: state=present name=git system=yes shell=/bin/sh comment="Git Version Control"
+
+# 4. GitLab Shell
+
+- hosts: gitlab
+  sudo: yes
+  sudo_user: git
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: ensure Gitlab-Shell git repository is cloned
+      git: repo=https://github.com/gitlabhq/gitlab-shell.git dest=/home/git/gitlab-shell version=v1.3.0
+    - name: ensure config is copied from example
+      command: cp /home/git/gitlab-shell/config.yml.example /home/git/gitlab-shell/config.yml creates=/home/git/gitlab-shell/config.yml
+    - name: ensure gitlab-shell config is written
+      action: template src=templates/gitlab_shell_config.yml.j2 dest=/home/git/gitlab-shell/config.yml mode=0755
+    - name: ensure gitlab-shell is installed
+      command: /home/git/gitlab-shell/bin/install
+
+
+# 6. GitLab
+
+- hosts: gitlab
+  sudo: yes
+  sudo_user: git
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: ensure GitLab 5.1 is cloned
+      git: repo=https://github.com/gitlabhq/gitlabhq.git dest=/home/git/gitlab version=5-1-stable
+    - name: ensure GitLab config file exists
+      action: template src=templates/gitlab.yml.j2 dest=/home/git/gitlab/config/gitlab.yml mode=0755
+    - name: Make sure that socket dir exists
+      action: file path=/home/git/gitlab/tmp/sockets state=directory
+
+- hosts: gitlab
+  sudo: yes
+  tasks:
+    - name: ensure GitLab can write to log (2)
+      command: chmod -R u+rwX /home/git/gitlab/log
+    - name: ensure GitLab can write to log (2)
+      command: chmod -R u+rwX /home/git/gitlab/tmp
+
+- hosts: gitlab
+  sudo: yes
+  sudo_user: git
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: ensure directory for satellites exists
+      file: state=directory path=/home/git/gitlab-satellites
+    - name: ensure database config is written
+      action: template src=templates/database.yml.j2 dest=/home/git/gitlab/config/database.yml mode=0755
+    - name: ensure database gitlabhq_production is present
+      mysql_db: state=present name=gitlabhq_production collation=utf8_unicode_ci encoding=utf8
+    - name: ensure database user gitlab is present and has privleges
+      mysql_user: state=present name=gitlab host=localhost password=$database_password priv=gitlabhq_production.*:ALL
+    - name: ensure copy of puma config exists
+      command: cp /home/git/gitlab/config/puma.rb.example /home/git/gitlab/config/puma.rb creates=/home/git/gitlab/config/puma.rb
+
+
+- hosts: gitlab
+  sudo: yes
+  tasks:
+    - name: ensure gem charlock_holmes is installed
+      command: gem install charlock_holmes --version '0.6.9'
+
+- hosts: gitlab
+  sudo: yes
+  sudo_user: git
+  vars_files:
+    - vars.yml
+
+  tasks:
+    - name: ensure GitLab bundle is installed
+      command: bundle install --deployment --without development test postgres chdir=/home/git/gitlab
+
+- hosts: gitlab
+  sudo: yes
+  sudo_user: git
+  tasks:
+    - shell: yes 'yes' | bundle exec rake gitlab:setup RAILS_ENV=production chdir=/home/git/gitlab
+
+# 6. GitLab (continued)
+
+- hosts: gitlab
+  sudo: yes
+  tasks:
+    - name: ensure init script is installed
+      get_url: url=https://raw.github.com/gitlabhq/gitlab-recipes/5-1-stable/init.d/gitlab dest=/etc/init.d/gitlab mode=0755
+    - name: make GitLab start on boot
+      command: update-rc.d gitlab defaults 21
+    # Since the init script is janky, the following two actions seem to be the
+    # way to go for reliably restarting gitlab.
+    - name: kill erroneous puma socket file
+      command: rm /home/git/gitlab/tmp/sockets/gitlab.socket
+    - name: stop GitLab
+      command: /etc/init.d/gitlab stop
+      ignore_errors: yes
+    - name: start GitLab
+      command: /etc/init.d/gitlab start
+      ignore_errors: yes
+
+# 7. Nginx
+- hosts: gitlab
+  sudo: yes
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: ensure package nginx is present
+      apt: state=present pkg=nginx
+    - name: ensure GitLab Nginx site is available
+      action: template src=templates/nginx.conf.j2 dest=/etc/nginx/sites-available/gitlab mode=0755
+    - name: ensure default Nginx site is not enabled
+      file: state=absent path=/etc/nginx/sites-enabled/default
+    - name: ensure GitLab Nginx site is enabled
+      file: state=link src=/etc/nginx/sites-available/gitlab path=/etc/nginx/sites-enabled/gitlab
+
+- hosts: gitlab
+  sudo: yes
+  tasks:
+    - name: restart Nginx
+      command: /etc/init.d/nginx restart
