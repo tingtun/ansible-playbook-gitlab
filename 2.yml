@@ -1,6 +1,0 @@
----
-- hosts: gitlab
-  sudo: yes
-  sudo_user: gitlab
-  tasks:
-    - shell: yes 'yes' | bundle exec rake gitlab:setup RAILS_ENV=production chdir=/home/gitlab/gitlab
