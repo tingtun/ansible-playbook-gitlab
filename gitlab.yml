@@ -169,6 +169,7 @@
     # way to go for reliably restarting gitlab.
     - name: kill erroneous puma socket file
       command: rm /home/git/gitlab/tmp/sockets/gitlab.socket
+      ignore_errors: yes
     - name: stop GitLab
       command: /etc/init.d/gitlab stop
       ignore_errors: yes
