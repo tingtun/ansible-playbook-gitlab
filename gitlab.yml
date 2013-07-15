@@ -84,7 +84,7 @@
     - vars.yml
   tasks:
     - name: ensure Gitlab-Shell git repository is cloned
-      git: repo=https://github.com/gitlabhq/gitlab-shell.git dest=/home/git/gitlab-shell version=v1.3.0
+      git: repo=https://github.com/gitlabhq/gitlab-shell.git dest=/home/git/gitlab-shell version=v1.5.0
     - name: ensure config is copied from example
       command: cp /home/git/gitlab-shell/config.yml.example /home/git/gitlab-shell/config.yml creates=/home/git/gitlab-shell/config.yml
     - name: ensure gitlab-shell config is written
@@ -101,8 +101,8 @@
   vars_files:
     - vars.yml
   tasks:
-    - name: ensure GitLab 5.1 is cloned
-      git: repo=https://github.com/gitlabhq/gitlabhq.git dest=/home/git/gitlab version=5-1-stable
+    - name: ensure GitLab 5.3-stable is cloned
+      git: repo=https://github.com/gitlabhq/gitlabhq.git dest=/home/git/gitlab version=5-3-stable
     - name: ensure GitLab config file exists
       action: template src=templates/gitlab.yml.j2 dest=/home/git/gitlab/config/gitlab.yml mode=0755
     - name: Make sure that socket dir exists
