@@ -84,7 +84,7 @@
     - vars.yml
   tasks:
     - name: ensure Gitlab-Shell git repository is cloned
-      git: repo=https://github.com/gitlabhq/gitlab-shell.git dest=/home/git/gitlab-shell version=v1.7.0
+      git: repo=https://github.com/gitlabhq/gitlab-shell.git dest=/home/git/gitlab-shell version=v1.5.0
     - name: ensure config is copied from example
       command: cp /home/git/gitlab-shell/config.yml.example /home/git/gitlab-shell/config.yml creates=/home/git/gitlab-shell/config.yml
     - name: ensure gitlab-shell config is written
