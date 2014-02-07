@@ -127,9 +127,9 @@
     - name: ensure database config is written
       action: template src=templates/database.yml.j2 dest=/home/git/gitlab/config/database.yml mode=0755
     - name: ensure database gitlabhq_production is present
-      pgsql_db: state=present name=gitlabhq_production collation=utf8_unicode_ci encoding=utf8
+      postgresql_db: state=present name=gitlabhq_production collation=utf8_unicode_ci encoding=utf8
     - name: ensure database user gitlab is present and has privleges
-      pgsql_user: state=present name=gitlab host=localhost password=$database_password priv=gitlabhq_production.*:ALL
+      postgresql_user: state=present name=gitlab host=localhost password=$database_password priv=gitlabhq_production.*:ALL
     - name: ensure copy of puma config exists
       command: cp /home/git/gitlab/config/puma.rb.example /home/git/gitlab/config/puma.rb creates=/home/git/gitlab/config/puma.rb
 
