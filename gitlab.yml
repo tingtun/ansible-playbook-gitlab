@@ -78,6 +78,8 @@
   tasks:
     - name: ensure user git is present
       user: state=present name=git system=yes shell=/bin/sh comment="Git Version Control"
+    - name: ensure postgresql user gitlab maps to user git
+      command: echo 'gitlab git gitlab' >> /etc/postgresql/9.1/main/pg_ident.conf
 
 # GitLab Shell
 
@@ -156,7 +158,7 @@
     - vars.yml
   tasks:
     - name: ensure GitLab bundle is installed
-      command: bundle install --deployment --without development test chdir=/home/git/gitlab
+      command: bundle install --deployment --without development test mysql chdir=/home/git/gitlab
 
 - hosts: all
   sudo: yes
