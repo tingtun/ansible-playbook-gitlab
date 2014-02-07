@@ -1,13 +1,16 @@
 ---
-- hosts: gitlab
+
+- hosts: all
   sudo: yes
+  vars_files:
+    - vars.yml
   tasks:
     - name: add domain to hosts file for fast resolution
       action: template src=templates/hosts.j2 dest=/etc/hosts
     - name: ensure apt cache is up to date
       action: apt update_cache=yes
     - name: ensure app apt dependencies are installed
-      action: apt pkg=$item
+      action: apt pkg={{ item }}
       with_items:
         - build-essential
         - zlib1g-dev
@@ -33,7 +36,7 @@
         # http://docs.ansible.com/postgresql_user_module.html
         - python-psycopg2
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   tasks:
     - name: ensure /usr/local/bin/python2 links to /usr/bin/python
@@ -41,7 +44,7 @@
 
 # Compile Ruby
 
-- hosts: gitlab
+- hosts: all
   sudo: no
   vars:
     url: http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.0.tar.gz
@@ -50,27 +53,27 @@
     - name: ensure directory /tmp/ruby is present
       file: state=directory path=/tmp/ruby
     - name: ensure ruby is downloaded
-      get_url: url=$url dest=/tmp/ruby
+      get_url: url={{ url }} dest=/tmp/ruby
     - name: ensure ruby is extracted
-      command: tar -xf ruby-2.1.0.tar.gz chdir=/tmp/ruby creates=$path
+      command: tar -xf ruby-2.1.0.tar.gz chdir=/tmp/ruby creates={{ path }}
     - name: ensure ruby is configured
-      command: ./configure chdir=$path creates=$path/Makefile
+      command: ./configure chdir={{ path }} creates={{ path }}/Makefile
     - name: ensure ruby is compiled
-      command: make chdir=$path creates=$path/ruby
+      command: make chdir={{ path }} creates={{ path }}/ruby
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   vars:
     path: /tmp/ruby/ruby-2.1.0
   tasks:
     - name: ensure ruby is installed
-      command: make install chdir=$path creates=/usr/local/bin/ruby
+      command: make install chdir={{ path }} creates=/usr/local/bin/ruby
     - name: ensure bundler is installed
       command: gem install bundler creates=/usr/local/lib/ruby/gems/2.1.0/gems/bundler-1.5.3
 
 # System Users
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   tasks:
     - name: ensure user git is present
@@ -78,7 +81,7 @@
 
 # GitLab Shell
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   sudo_user: git
   vars_files:
@@ -95,7 +98,7 @@
 
 # GitLab
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   sudo_user: git
   vars_files:
@@ -108,7 +111,7 @@
     - name: Make sure that socket dir exists
       action: file path=/home/git/gitlab/tmp/sockets state=directory
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   tasks:
     - name: ensure GitLab can write to log (2)
@@ -116,7 +119,7 @@
     - name: ensure GitLab can write to log (2)
       command: chmod -R u+rwX /home/git/gitlab/tmp
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   sudo_user: git
   vars_files:
@@ -126,31 +129,36 @@
       file: state=directory path=/home/git/gitlab-satellites
     - name: ensure database config is written
       action: template src=templates/database.yml.j2 dest=/home/git/gitlab/config/database.yml mode=0755
+    - name: ensure copy of unicorn config exists
+      command: cp /home/git/gitlab/config/unicorn.rb.example /home/git/gitlab/config/unicorn.rb creates=/home/git/gitlab/config/unicorn.rb
+
+- hosts: all
+  sudo: yes
+  sudo_user: postgres
+  vars_files:
+    - vars.yml
+  tasks:
     - name: ensure database gitlabhq_production is present
-      postgresql_db: state=present name=gitlabhq_production collation=utf8_unicode_ci encoding=utf8
-    - name: ensure database user gitlab is present and has privleges
-      postgresql_user: state=present name=gitlab host=localhost password=$database_password priv=gitlabhq_production.*:ALL
-    - name: ensure copy of puma config exists
-      command: cp /home/git/gitlab/config/puma.rb.example /home/git/gitlab/config/puma.rb creates=/home/git/gitlab/config/puma.rb
+      postgresql_db: state=present name=gitlabhq_production template='template1'
+    - name: ensure database user gitlab is present and has privileges
+      postgresql_user: state=present name=gitlab password={{ database_password }} priv=ALL db=gitlabhq_production
 
-
-- hosts: gitlab
+- hosts: all
   sudo: yes
   tasks:
     - name: ensure gem charlock_holmes is installed
       command: gem install charlock_holmes --version '0.6.9.4'
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   sudo_user: git
   vars_files:
     - vars.yml
-
   tasks:
     - name: ensure GitLab bundle is installed
-      command: bundle install --deployment --without development test postgres chdir=/home/git/gitlab
+      command: bundle install --deployment --without development test chdir=/home/git/gitlab
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   sudo_user: git
   tasks:
@@ -158,18 +166,13 @@
 
 # GitLab (continued)
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   tasks:
     - name: ensure init script is installed
       get_url: url=https://raw.github.com/gitlabhq/gitlab-recipes/6-5-stable/init.d/gitlab dest=/etc/init.d/gitlab mode=0755
     - name: make GitLab start on boot
       command: update-rc.d gitlab defaults 21
-    # Since the init script is janky, the following two actions seem to be the
-    # way to go for reliably restarting gitlab.
-    - name: kill erroneous puma socket file
-      command: rm /home/git/gitlab/tmp/sockets/gitlab.socket
-      ignore_errors: yes
     - name: stop GitLab
       command: /etc/init.d/gitlab stop
       ignore_errors: yes
@@ -178,7 +181,8 @@
       ignore_errors: yes
 
 # Nginx
-- hosts: gitlab
+
+- hosts: all
   sudo: yes
   vars_files:
     - vars.yml
@@ -192,7 +196,7 @@
     - name: ensure GitLab Nginx site is enabled
       file: state=link src=/etc/nginx/sites-available/gitlab path=/etc/nginx/sites-enabled/gitlab
 
-- hosts: gitlab
+- hosts: all
   sudo: yes
   tasks:
     - name: restart Nginx
