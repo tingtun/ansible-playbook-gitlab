@@ -78,8 +78,6 @@
   tasks:
     - name: ensure user git is present
       user: state=present name=git system=yes shell=/bin/sh comment="Git Version Control"
-    - name: ensure postgresql user gitlab maps to user git
-      command: echo 'gitlab git gitlab' >> /etc/postgresql/9.1/main/pg_ident.conf
 
 # GitLab Shell
 
@@ -143,7 +141,7 @@
     - name: ensure database gitlabhq_production is present
       postgresql_db: state=present name=gitlabhq_production template='template1'
     - name: ensure database user gitlab is present and has privileges
-      postgresql_user: state=present name=gitlab password={{ database_password }} priv=ALL db=gitlabhq_production
+      postgresql_user: state=present name=git password={{ database_password }} priv=ALL db=gitlabhq_production
 
 - hosts: all
   sudo: yes
@@ -171,9 +169,11 @@
 - hosts: all
   sudo: yes
   tasks:
-    - name: ensure init script is installed
-      get_url: url=https://raw.github.com/gitlabhq/gitlab-recipes/6-5-stable/init.d/gitlab dest=/etc/init.d/gitlab mode=0755
-    - name: make GitLab start on boot
+    - name: ensure /etc/init.d/gitlab is installed
+      get_url: url=https://raw.github.com/gitlabhq/gitlabhq/6-5-stable/lib/support/init.d/gitlab dest=/etc/init.d/gitlab mode=0755
+    - name: ensure /etc/default/gitlab is installed
+      get_url: url=https://raw.github.com/gitlabhq/gitlabhq/6-5-stable/lib/support/init.d/gitlab.default.example dest=/etc/default/gitlab mode=0755
+    - name: make gitlab start on boot
       command: update-rc.d gitlab defaults 21
     - name: stop GitLab
       command: /etc/init.d/gitlab stop
