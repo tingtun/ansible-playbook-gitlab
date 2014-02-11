@@ -1,8 +1,7 @@
 production:
-  adapter: mysql2
+  adapter: postgresql
   encoding: utf8
   database: gitlabhq_production
-  username: gitlab
+  username: git
   password: {{ database_password }}
-  socket: /var/run/mysqld/mysqld.sock
-
+  socket: /var/pgsql_socket/.s.PGSQL.5432
