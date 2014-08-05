@@ -1,6 +1,6 @@
 ---
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   tasks:
    vars_files:
@@ -35,7 +35,7 @@
         - libmysqlclient-dev
         - python-mysqldb # Required for ansible mysql module to work, see: http://ansible.cc/docs/modules.html#mysql-user
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   tasks:
     - name: ensure /usr/local/bin/python2 links to /usr/bin/python
@@ -43,7 +43,7 @@
 
 # Compile Ruby!
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: no
   vars:
     url: ftp://ftp.ruby-lang.org/pub/ruby/2.1/ruby-2.1.2.tar.gz
@@ -60,7 +60,7 @@
     - name: ensure ruby is compiled
       command: make chdir=$path creates=$path/ruby
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   vars:
     path: /tmp/ruby/ruby-2.1.2
@@ -72,7 +72,7 @@
 
 # System Users
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   tasks:
     - name: ensure user git is present
@@ -80,7 +80,7 @@
 
 # 4. GitLab Shell
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   sudo_user: git
   vars_files:
@@ -98,7 +98,7 @@
 
 # 6. GitLab
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   sudo_user: git
   vars_files:
@@ -117,7 +117,7 @@
     - name: Make sure that socket dir exists
       action: file path=/home/git/gitlab/tmp/sockets state=directory
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   tasks:
     - name: ensure GitLab can write to log (2)
@@ -125,7 +125,7 @@
     - name: ensure GitLab can write to log (2)
       command: chmod -R u+rwX /home/git/gitlab/tmp
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   sudo_user: git
   vars_files:
@@ -141,7 +141,7 @@
       mysql_user: state=present name=gitlab host=localhost password=$database_password priv=gitlabhq_production.*:ALL
 
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   sudo_user: git
   vars_files:
@@ -150,7 +150,7 @@
     - name: ensure GitLab bundle is installed
       command: bundle install --deployment --without development test postgres chdir=/home/git/gitlab
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   sudo_user: git
   tasks:
@@ -158,7 +158,7 @@
 
 # 6. GitLab (continued)
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   tasks:
     - name: ensure init script is installed
@@ -178,7 +178,7 @@
       ignore_errors: yes
 
 # 7. Nginx
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   vars_files:
     - vars.yml
@@ -192,7 +192,7 @@
     - name: ensure GitLab Nginx site is enabled
       file: state=link src=/etc/nginx/sites-available/gitlab path=/etc/nginx/sites-enabled/gitlab
 
-- hosts: gitlab
+- hosts: gitlab3
   sudo: yes
   tasks:
     - name: restart Nginx
