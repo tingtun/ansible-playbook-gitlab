@@ -1,6 +1,6 @@
 # ansible-playbook-gitlab
 
-Playbook for installing GitLab 5.1 on Ubuntu (tested with quantal 12.10).
+Playbook for installing GitLab 7.1-stable Ubuntu (tested with 12.04 i686 and 14.04 amd64).
 
 Let's be honest, setting up gitlab is in pain in the ass. This ansible playbook was made to help you deploy GitLab in about 15 minutes with a single command.
 
@@ -19,11 +19,12 @@ Run the following:
 
 Now you should be able to log in with:
 
-    username: admin@local.host
+    username: root
     password: 5iveL!fe
 
 ## Contributors
 
+* Benoît des Ligneris (https://github.com/bligneri)
 * Alexander Teinum (https://github.com/alexanderte)
 * Jake Dahn (http://github.com/jakedahn)
 

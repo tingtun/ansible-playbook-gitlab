@@ -1,0 +1,4 @@
+development: redis://localhost:6379
+test: redis://localhost:6379
+production: redis://localhost:6379
+
