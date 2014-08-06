@@ -1,5 +1,5 @@
 ---
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   vars_files:
     - vars.yml
@@ -34,7 +34,7 @@
         - libmysqlclient-dev
         - python-mysqldb # Required for ansible mysql module to work, see: http://ansible.cc/docs/modules.html#mysql-user
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   tasks:
     - name: ensure /usr/local/bin/python2 links to /usr/bin/python
@@ -42,7 +42,7 @@
 
 # Compile Ruby!
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: no
   vars:
     ruby_version: 2.1.2
@@ -60,7 +60,7 @@
     - name: ensure ruby is compiled
       command: make -j{{ansible_processor_cores}} chdir={{path}} creates={{path}}/ruby
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   vars:
     path: /tmp/ruby/ruby-2.1.2
@@ -74,7 +74,7 @@
 
 # System Users
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   tasks:
     - name: ensure user git is present
@@ -82,7 +82,7 @@
 
 # 6. GitLab
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   sudo_user: git
   vars:
@@ -105,7 +105,7 @@
     - name: Make sure that socket dir exists
       action: file path=/home/git/gitlab/tmp/sockets state=directory
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   sudo_user: git
   vars_files:
@@ -122,7 +122,7 @@
     - shell: yes 'yes' | bundle exec rake gitlab:shell:install[v1.9.6] REDIS_URL=redis://localhost:6379 RAILS_ENV=production chdir=/home/git/gitlab
 
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   tasks:
     - name: ensure GitLab can write to log (2)
@@ -130,7 +130,7 @@
     - name: ensure GitLab can write to log (2)
       command: chmod -R u+rwX /home/git/gitlab/tmp
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   sudo_user: git
   vars_files:
@@ -146,7 +146,7 @@
       mysql_user: state=present name=gitlab host=localhost password=$database_password priv=gitlabhq_production.*:ALL
 
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   sudo_user: git
   vars_files:
@@ -154,10 +154,8 @@
   tasks:
     - name: ensure GitLab bundle is installed
       command: bundle install -j{{ansible_processor_cores}} --deployment --without development test postgres chdir=/home/git/gitlab
-    #- name: compile assets (not functional, unknown reason!)
-    #  command: yes 'yes'| bundle exec rake assets:precompile RAILS_ENV=production chdir=/home/git/gitlab
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   sudo_user: git
   tasks:
@@ -169,7 +167,7 @@
 
 # 6. GitLab : startup file and config file
 
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   tasks:
     - name: ensure logrotate script is installed  (from lib/support)
@@ -191,7 +189,7 @@
       ignore_errors: yes
 
 # 7. Nginx
-- hosts: gitlab3
+- hosts: gitlab
   sudo: yes
   vars_files:
     - vars.yml
@@ -205,7 +203,13 @@
     - name: ensure GitLab Nginx site is enabled
       file: state=link src=/etc/nginx/sites-available/gitlab path=/etc/nginx/sites-enabled/gitlab
 
-- hosts: gitlab3
+- hosts: gitlab
+  sudo: yes
+  tasks:
+#    - name: compile assets (not functional, unknown reason!)
+#      command: yes 'yes'| bundle exec rake assets:precompile RAILS_ENV=production chdir=/home/git/gitlab
+
+- hosts: gitlab
   sudo: yes
   vars_files:
     - vars.yml
