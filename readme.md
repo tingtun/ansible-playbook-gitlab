@@ -26,12 +26,6 @@ Once properly loaded, you should be able to log in with:
 
 ## Next steps :
 
-### Precompile assets :
-At the time of this writing, the asset precompile phase is not working in the ansible playbook
-Please run on the gitlab server (as git), the following commands :
-cd /home/git/gitlab
-sudo -u git -H bundle exec rake assets:precompile RAILS_ENV=production
-
 ### Configure SMTP-out :
 In order to configure SMTP-OUT, please copy the template config file and adjust the values accordingly
 cp /home/git/gitlab/config/initializers/smtp_settings.rb.sample /home/git/gitlab/config/initializers/smtp_settings.rb
