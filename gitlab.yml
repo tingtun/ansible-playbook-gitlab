@@ -111,6 +111,21 @@
   vars_files:
     - vars.yml
   tasks:
+    - name: ensure directory for satellites exists
+      file: state=directory path=/home/git/gitlab-satellites mode=0750
+    - name: ensure database config is written
+      action: template src=templates/database.yml.j2 dest=/home/git/gitlab/config/database.yml mode=0755
+    - name: ensure database gitlabhq_production is present
+      mysql_db: state=present name=gitlabhq_production collation=utf8_unicode_ci encoding=utf8
+    - name: ensure database user gitlab is present and has privileges
+      mysql_user: state=present name=gitlab host=localhost password={{database_password}} priv=gitlabhq_production.*:ALL
+
+- hosts: gitlab
+  sudo: yes
+  sudo_user: git
+  vars_files:
+    - vars.yml
+  tasks:
     - name: ensure git user propertie user.name is OK
       command: git config --global user.name "GitLab"
     - name: ensure git user propertie user.email is OK
@@ -136,22 +151,6 @@
   vars_files:
     - vars.yml
   tasks:
-    - name: ensure directory for satellites exists
-      file: state=directory path=/home/git/gitlab-satellites mode=0750
-    - name: ensure database config is written
-      action: template src=templates/database.yml.j2 dest=/home/git/gitlab/config/database.yml mode=0755
-    - name: ensure database gitlabhq_production is present
-      mysql_db: state=present name=gitlabhq_production collation=utf8_unicode_ci encoding=utf8
-    - name: ensure database user gitlab is present and has privleges
-      mysql_user: state=present name=gitlab host=localhost password=$database_password priv=gitlabhq_production.*:ALL
-
-
-- hosts: gitlab
-  sudo: yes
-  sudo_user: git
-  vars_files:
-    - vars.yml
-  tasks:
     - name: ensure GitLab bundle is installed
       command: bundle install -j{{ansible_processor_cores}} --deployment --without development test postgres chdir=/home/git/gitlab
 
@@ -159,13 +158,12 @@
   sudo: yes
   sudo_user: git
   tasks:
-    - shell: yes 'yes' | bundle exec rake gitlab:setup RAILS_ENV=production chdir=/home/git/gitlab
+    - name: Deploy gitlab in production emode
+      shell: yes 'yes' | bundle exec rake gitlab:setup RAILS_ENV=production chdir=/home/git/gitlab
+    - name: precompile assets 
+      shell: yes 'yes'| bundle exec rake assets:precompile RAILS_ENV=production chdir=/home/git/gitlab
 
-
-# 4. GitLab Shell
-
-
-# 6. GitLab : startup file and config file
+# GitLab : startup file and config file
 
 - hosts: gitlab
   sudo: yes
@@ -205,16 +203,12 @@
 
 - hosts: gitlab
   sudo: yes
-  tasks:
-#    - name: compile assets (not functional, unknown reason!)
-#      command: yes 'yes'| bundle exec rake assets:precompile RAILS_ENV=production chdir=/home/git/gitlab
-
-- hosts: gitlab
-  sudo: yes
   vars_files:
     - vars.yml
   tasks:
     - name: restart Nginx
       command: /etc/init.d/nginx restart
+
     - name: You can connect to http://{{domain_name}} with user root and password 5iveL!fe
       command: echo 'Enjoy - you can connect to http://{{domain_name}}/, user root and password 5iveL!fe'
+
