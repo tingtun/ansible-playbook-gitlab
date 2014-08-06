@@ -52,7 +52,7 @@
     - name: ensure directory /tmp/ruby is present
       file: state=directory path=/tmp/ruby
     - name: ensure ruby is downloaded
-      get_url: url={{ url }} dest=/tmp/ruby
+      get_url: url={{url}} dest=/tmp/ruby/ruby-{{ruby_version}}.tar.gz force=no
     - name: ensure ruby is extracted
       command: tar -xf ruby-{{ruby_version}}.tar.gz chdir=/tmp/ruby creates={{path}}
     - name: ensure ruby is configured
