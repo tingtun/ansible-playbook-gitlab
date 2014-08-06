@@ -28,6 +28,7 @@ Once properly loaded, you should be able to log in with:
 
 ### Configure SMTP-out :
 In order to configure SMTP-OUT, please copy the template config file and adjust the values accordingly
+
     cp /home/git/gitlab/config/initializers/smtp_settings.rb.sample /home/git/gitlab/config/initializers/smtp_settings.rb
     vi /home/git/gitlab/config/initializers/smtp_settings.rb 
     #save
