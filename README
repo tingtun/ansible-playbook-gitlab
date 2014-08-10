@@ -1,7 +1,0 @@
-Ce dépot contient les recettes Ansible (playbook) pour l'hébergement
-des SMLTs
-
-Ansible est un système sans agent qui permet d'exécuter des "playbook" qui automatisent
-le déploiement d'applications.
-
-
