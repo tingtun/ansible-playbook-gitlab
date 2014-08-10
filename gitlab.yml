@@ -80,7 +80,7 @@
     - name: ensure user git is present
       user: state=present name=git system=yes shell=/bin/sh comment="Git Version Control"
 
-# 6. GitLab
+# GitLab
 
 - hosts: gitlab
   sudo: yes
@@ -186,7 +186,7 @@
       command: /etc/init.d/gitlab start
       ignore_errors: yes
 
-# 7. Nginx
+# Deploy and configure Nginx
 - hosts: gitlab
   sudo: yes
   vars_files:
