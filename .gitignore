@@ -1,1 +1,6 @@
 vars.yml
+playbook/
+hosts
+hosts.local
+ansible.cfg
+README
